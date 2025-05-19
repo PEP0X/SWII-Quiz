@@ -7,6 +7,7 @@ export class QuizApp {
     this.allQuestions = allQuestions;
     this.topics = [...new Set(allQuestions.map((q) => q.topic))];
     this.currentTopic = null;
+    this.currentQuestionType = "mcq"; // 'mcq' or 'tf'
     this.userAnswers = {}; // { topic: { [questionIndex]: userAnswer } }
     this.quizResults = {}; // { topic: { correct: [], wrong: [] } }
     this.STORAGE_KEY = "quizAppProgress";
@@ -193,8 +194,16 @@ export class QuizApp {
   renderQuestions(topic, showResult = false) {
     const questionsContainer = document.getElementById("questions-container");
     questionsContainer.innerHTML = "";
-    const topicQuestions = this.allQuestions.filter((q) => q.topic === topic);
-    const answers = this.userAnswers[topic] || {};
+    // Filter by topic and currentQuestionType
+    const topicQuestions = this.allQuestions.filter(
+      (q) =>
+        q.topic === topic &&
+        (this.currentQuestionType === "mcq"
+          ? q.type === "mcq"
+          : q.type === "tf")
+    );
+    const answers = this.userAnswers[topic]?.[this.currentQuestionType] || {};
+
     topicQuestions.forEach((question, idx) => {
       const card = this.createQuestionCard(
         question,
@@ -212,12 +221,34 @@ export class QuizApp {
 
   showQuestionsForTopic(topic) {
     this.currentTopic = topic;
+    this.currentQuestionType = "mcq"; // Default to MCQ when topic is selected
     document.getElementById("topic-selection").classList.add("hidden");
     document.getElementById("questions-screen").classList.remove("hidden");
     document.getElementById("results-screen").classList.add("hidden");
     document.getElementById("current-topic-title").textContent = topic;
     document.getElementById("score-display").classList.add("hidden");
+    this.updateTabUI();
     this.renderQuestions(topic);
+    this.setupQuestionInputListeners();
+  }
+
+  updateTabUI() {
+    const mcqBtn = document.getElementById("tab-mcq");
+    const tfBtn = document.getElementById("tab-tf");
+    if (this.currentQuestionType === "mcq") {
+      mcqBtn.classList.add("bg-indigo-600");
+      mcqBtn.classList.remove("bg-gray-700");
+      tfBtn.classList.add("bg-gray-700");
+      tfBtn.classList.remove("bg-indigo-600");
+    } else {
+      tfBtn.classList.add("bg-indigo-600");
+      tfBtn.classList.remove("bg-gray-700");
+      mcqBtn.classList.add("bg-gray-700");
+      mcqBtn.classList.remove("bg-indigo-600");
+    }
+  }
+
+  setupQuestionInputListeners() {
     // Restore previous answers if any
     const questionsContainer = document.getElementById("questions-container");
     questionsContainer
@@ -225,20 +256,29 @@ export class QuizApp {
       .forEach((input) => {
         input.addEventListener("change", (e) => {
           const idx = parseInt(input.name.replace("q", ""));
-          if (!this.userAnswers[topic]) this.userAnswers[topic] = {};
-          this.userAnswers[topic][idx] = input.value;
+          if (!this.userAnswers[this.currentTopic])
+            this.userAnswers[this.currentTopic] = {};
+          if (!this.userAnswers[this.currentTopic][this.currentQuestionType])
+            this.userAnswers[this.currentTopic][this.currentQuestionType] = {};
+          this.userAnswers[this.currentTopic][this.currentQuestionType][idx] =
+            input.value;
           this.saveProgress();
-          this.updateProgressBar(topic);
-          this.updateLiveScore(topic);
+          this.updateProgressBar(this.currentTopic);
+          this.updateLiveScore(this.currentTopic);
         });
       });
   }
 
   calculateAndShowResults() {
     const topicQuestions = this.allQuestions.filter(
-      (q) => q.topic === this.currentTopic
+      (q) =>
+        q.topic === this.currentTopic &&
+        (this.currentQuestionType === "mcq"
+          ? q.type === "mcq"
+          : q.type === "tf")
     );
-    const answers = this.userAnswers[this.currentTopic] || {};
+    const answers =
+      this.userAnswers[this.currentTopic]?.[this.currentQuestionType] || {};
     let correct = 0;
     let wrong = 0;
     let correctList = [],
@@ -252,7 +292,9 @@ export class QuizApp {
         wrongList.push(idx);
       }
     });
-    this.quizResults[this.currentTopic] = {
+    if (!this.quizResults[this.currentTopic])
+      this.quizResults[this.currentTopic] = {};
+    this.quizResults[this.currentTopic][this.currentQuestionType] = {
       correct: correctList,
       wrong: wrongList,
     };
@@ -271,13 +313,60 @@ export class QuizApp {
     );
     document.getElementById("correct-count").textContent = correct;
     document.getElementById("total-count").textContent = total;
-    // Show detailed results
-    const questionsContainer = document.getElementById("questions-container");
-    this.renderQuestions(this.currentTopic, true);
+    // Show detailed results in the results screen
+    this.renderResultsDetails();
     // Update results progress bar
     const bar = document.getElementById("results-progress-bar");
     if (bar)
       bar.style.width = (total ? Math.round((correct / total) * 100) : 0) + "%";
+  }
+
+  renderResultsDetails() {
+    const container = document.getElementById("results-questions-container");
+    container.innerHTML = "";
+    const topicQuestions = this.allQuestions.filter(
+      (q) =>
+        q.topic === this.currentTopic &&
+        (this.currentQuestionType === "mcq"
+          ? q.type === "mcq"
+          : q.type === "tf")
+    );
+    const answers =
+      this.userAnswers[this.currentTopic]?.[this.currentQuestionType] || {};
+    // Summary of wrong answers
+    const wrongQuestions = topicQuestions.filter(
+      (question, idx) => answers[idx] !== question.answer
+    );
+    if (wrongQuestions.length > 0) {
+      const summaryDiv = document.createElement("div");
+      summaryDiv.className =
+        "mb-8 p-4 rounded-lg bg-red-900/60 border border-red-700";
+      summaryDiv.innerHTML = `<div class=\"text-lg font-semibold text-red-300 mb-2\">You got these questions wrong:</div>`;
+      const ul = document.createElement("ul");
+      ul.className = "list-disc list-inside text-red-200";
+      wrongQuestions.forEach((q, i) => {
+        const idx = topicQuestions.indexOf(q);
+        const li = document.createElement("li");
+        li.innerHTML = `<span class='font-bold'>Q${idx + 1}:</span> ${
+          q.question
+        }`;
+        ul.appendChild(li);
+      });
+      summaryDiv.appendChild(ul);
+      container.appendChild(summaryDiv);
+    } else {
+      const summaryDiv = document.createElement("div");
+      summaryDiv.className =
+        "mb-8 p-4 rounded-lg bg-green-900/60 border border-green-700 text-green-200 text-lg font-semibold text-center";
+      summaryDiv.textContent =
+        "Congratulations! You got all questions correct.";
+      container.appendChild(summaryDiv);
+    }
+    // Render all questions with feedback
+    topicQuestions.forEach((question, idx) => {
+      const card = this.createQuestionCard(question, idx, answers[idx], true);
+      container.appendChild(card);
+    });
   }
 
   setupEventListeners() {
@@ -296,17 +385,35 @@ export class QuizApp {
       });
 
     document.getElementById("retry-quiz").addEventListener("click", () => {
-      // Clear answers for this topic
-      if (this.userAnswers[this.currentTopic])
-        delete this.userAnswers[this.currentTopic];
-      if (this.quizResults[this.currentTopic])
-        delete this.quizResults[this.currentTopic];
+      // Clear answers for this topic and type
+      if (this.userAnswers[this.currentTopic]?.[this.currentQuestionType])
+        delete this.userAnswers[this.currentTopic][this.currentQuestionType];
+      if (this.quizResults[this.currentTopic]?.[this.currentQuestionType])
+        delete this.quizResults[this.currentTopic][this.currentQuestionType];
       this.saveProgress();
       this.showQuestionsForTopic(this.currentTopic);
     });
 
     document.getElementById("submit-answers").addEventListener("click", () => {
       this.calculateAndShowResults();
+    });
+
+    // Tab switching
+    document.getElementById("tab-mcq").addEventListener("click", () => {
+      if (this.currentQuestionType !== "mcq") {
+        this.currentQuestionType = "mcq";
+        this.updateTabUI();
+        this.renderQuestions(this.currentTopic);
+        this.setupQuestionInputListeners();
+      }
+    });
+    document.getElementById("tab-tf").addEventListener("click", () => {
+      if (this.currentQuestionType !== "tf") {
+        this.currentQuestionType = "tf";
+        this.updateTabUI();
+        this.renderQuestions(this.currentTopic);
+        this.setupQuestionInputListeners();
+      }
     });
 
     // Reset Quiz button logic
