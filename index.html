@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Software Engineering Quiz</title>
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="src/css/styles.css" />
+  </head>
+  <body
+    class="bg-gradient-to-br from-[#0a0a23] to-[#181826] text-gray-100 font-inter min-h-screen p-4"
+  >
+    <div class="flex justify-end max-w-6xl mx-auto px-2 sm:px-4">
+      <button
+        id="reset-quiz"
+        class="bg-gradient-to-r from-rose-600 to-red-500 hover:from-rose-700 hover:to-red-600 text-white font-bold py-2 px-6 rounded-lg shadow-lg transition duration-150 ease-in-out mt-6 mb-2 mr-2 w-full sm:w-auto"
+      >
+        Reset Quiz
+      </button>
+    </div>
+    <div class="max-w-6xl mx-auto px-2 sm:px-4">
+      <h1
+        class="text-3xl sm:text-4xl md:text-5xl font-bold text-center text-indigo-400 mb-8 mt-8 tracking-tight"
+      >
+        Software Engineering Quiz
+      </h1>
+
+      <!-- Topic Selection Screen -->
+      <div id="topic-selection" class="fade-in">
+        <h2 class="text-2xl font-semibold text-center text-gray-300 mb-8">
+          Choose a Topic
+        </h2>
+        <div
+          class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6"
+          id="topics-container"
+        >
+          <!-- Topics will be dynamically inserted here -->
+        </div>
+      </div>
+
+      <!-- Questions Screen -->
+      <div id="questions-screen" class="hidden fade-in">
+        <div
+          class="flex flex-col sm:flex-row items-center justify-between mb-8 gap-4 sm:gap-0"
+        >
+          <button
+            id="back-to-topics"
+            class="bg-indigo-700 hover:bg-indigo-600 text-white font-semibold py-2 px-4 rounded-lg transition duration-150 ease-in-out flex items-center shadow-md w-full sm:w-auto"
+          >
+            <svg
+              class="w-5 h-5 mr-2"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M10 19l-7-7m0 0l7-7m-7 7h18"
+              />
+            </svg>
+            Back to Topics
+          </button>
+          <div
+            class="flex flex-col sm:flex-row items-center gap-2 sm:gap-4 w-full sm:w-auto"
+          >
+            <h2
+              id="current-topic-title"
+              class="text-xl sm:text-2xl font-semibold text-indigo-400"
+            ></h2>
+            <div
+              id="score-display"
+              class="bg-indigo-700 px-4 py-2 rounded-lg hidden font-semibold text-base sm:text-lg"
+            >
+              Score: <span id="current-score">0</span>/<span
+                id="total-questions"
+                >0</span
+              >
+            </div>
+          </div>
+        </div>
+        <div id="progress-bar-container" class="mb-6">
+          <div id="progress-bar" style="width: 0%"></div>
+        </div>
+        <div
+          id="questions-container"
+          class="space-y-6 max-w-2xl mx-auto w-full"
+        >
+          <!-- Questions will be dynamically inserted here -->
+        </div>
+        <div class="mt-8 flex justify-center">
+          <button
+            id="submit-answers"
+            class="bg-gradient-to-r from-indigo-500 to-teal-400 hover:from-indigo-600 hover:to-teal-500 text-white font-semibold py-3 px-8 rounded-lg transition duration-150 ease-in-out shadow-lg w-full sm:w-auto"
+          >
+            Submit Answers
+          </button>
+        </div>
+      </div>
+
+      <!-- Results Screen -->
+      <div id="results-screen" class="hidden fade-in">
+        <div
+          class="bg-gradient-to-br from-indigo-900 to-blue-900 p-8 rounded-xl shadow-2xl max-w-2xl mx-auto text-center border border-indigo-700"
+        >
+          <h2 class="text-2xl sm:text-3xl font-bold text-blue-400 mb-6">
+            Quiz Results
+          </h2>
+          <div class="text-4xl sm:text-6xl font-bold text-green-400 mb-6">
+            <span id="final-score">0</span>%
+          </div>
+          <p class="text-lg sm:text-xl mb-8">
+            You got <span id="correct-count">0</span> out of
+            <span id="total-count">0</span> questions correct!
+          </p>
+          <div id="results-progress-bar-container" class="mb-8">
+            <div
+              id="results-progress-bar"
+              style="
+                width: 0%;
+                height: 18px;
+                background: linear-gradient(90deg, #6366f1 0%, #06b6d4 100%);
+                border-radius: 1rem;
+                transition: width 0.4s cubic-bezier(0.4, 2, 0.6, 1);
+              "
+            ></div>
+          </div>
+          <div class="flex flex-col sm:flex-row justify-center gap-4">
+            <button
+              id="retry-quiz"
+              class="bg-gradient-to-r from-indigo-500 to-teal-400 hover:from-indigo-600 hover:to-teal-500 text-white font-semibold py-3 px-6 rounded-lg transition duration-150 ease-in-out shadow-lg w-full sm:w-auto"
+            >
+              Retry Quiz
+            </button>
+            <button
+              id="back-to-topics-from-results"
+              class="bg-indigo-700 hover:bg-indigo-600 text-white font-semibold py-3 px-6 rounded-lg transition duration-150 ease-in-out shadow-md w-full sm:w-auto"
+            >
+              Choose Another Topic
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <script type="module" src="src/js/main.js"></script>
+  </body>
+</html>
