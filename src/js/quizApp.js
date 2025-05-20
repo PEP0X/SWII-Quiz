@@ -413,6 +413,7 @@ export class QuizApp {
     });
 
     document.getElementById("submit-answers").addEventListener("click", () => {
+      window.scrollTo({ top: 0, behavior: "smooth" });
       this.calculateAndShowResults();
     });
 
