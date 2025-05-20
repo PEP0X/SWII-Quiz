@@ -313,6 +313,24 @@ export class QuizApp {
     );
     document.getElementById("correct-count").textContent = correct;
     document.getElementById("total-count").textContent = total;
+    // Show GIF based on score
+    const resultsGifContainer = document.getElementById(
+      "results-gif-container"
+    );
+    let gifSrc = "";
+    let altText = "";
+    const scorePercent = (correct / total) * 100;
+    if (scorePercent >= 80) {
+      gifSrc = "src/public/good-job.gif";
+      altText = "Good Job!";
+    } else if (scorePercent < 50) {
+      gifSrc = "src/public/try-again.gif";
+      altText = "Try Again!";
+    } else {
+      gifSrc = "src/public/is-that-the-best-u-can-do.gif";
+      altText = "Is that the best you can do?";
+    }
+    resultsGifContainer.innerHTML = `<img src="${gifSrc}" alt="${altText}" class="rounded-xl shadow-lg max-h-64" />`;
     // Show detailed results in the results screen
     this.renderResultsDetails();
     // Update results progress bar

@@ -2257,7 +2257,7 @@ export const allQuestions = [
       "Maintainability, reliability, and safety",
       "Efficiency, responsiveness, and processing time",
     ],
-    answer: "Understanding, usability, and compatibility",
+    answer: "Maintainability, reliability, and safety",
   },
   {
     topic: "General Software Attributes and Quality",
