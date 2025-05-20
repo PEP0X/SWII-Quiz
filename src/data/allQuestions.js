@@ -1223,7 +1223,7 @@ export const allQuestions = [
       "To facilitate team meetings and decision-making process",
       "To work with the organization to track the progress and processes of the company",
     ],
-    answer: "To remove any blocks",
+    answer: "To enable close co-operation between all roles and functions",
   },
   {
     topic: "Agile and Project Management",
